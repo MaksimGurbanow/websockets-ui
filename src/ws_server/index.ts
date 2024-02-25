@@ -2,6 +2,7 @@ import { User } from "src/models/user";
 import { createPlayer } from "../service/createPlayer";
 import { Users } from "src/db/users";
 import { MessageEvent, WebSocket, WebSocketServer } from "ws";
+import { sendJsonMessage } from "src/utils/sendJsonMessage";
 
 export const wss = new WebSocketServer({ port: 3000 });
 
@@ -17,11 +18,7 @@ wss.on("connection", (ws: WebSocket, req) => {
       const currentUser = createPlayer
         (userParseData.name, userParseData.password, ws);
       console.log(currentUser)
-      ws.send(JSON.stringify({
-        type,
-        data: JSON.stringify(data),
-        id: 0,
-      }))
+      ws.send(sendJsonMessage(type, currentUser))
     } catch (error) {
       
     }
