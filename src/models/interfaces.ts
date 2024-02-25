@@ -10,3 +10,16 @@ export interface User {
   ready?: boolean;
   isBot?: boolean;
 }
+
+export interface Room {
+  roomId: string;
+  roomUsers: RoomUsers[];
+  gameState?: boolean;
+}
+
+export interface RoomUsers {
+  name: string;
+  index: number;
+  turnIndex?: number;
+  shipsLeft: number;
+}

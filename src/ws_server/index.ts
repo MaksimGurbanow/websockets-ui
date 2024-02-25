@@ -1,4 +1,4 @@
-import { User } from "src/models/user";
+import { User } from "src/models/interfaces";
 import { createPlayer } from "../service/createPlayer";
 import { MessageEvent, WebSocket, WebSocketServer } from "ws";
 import { sendJsonMessage } from "../utils/sendJsonMessage";
@@ -12,11 +12,11 @@ wss.on("connection", (ws: WebSocket, req) => {
     try {
       const msg = JSON.parse(e.data.toString());
       const { type, data } = msg;
+      const userParseData = JSON.parse(data);
+      const currentUser = createPlayer
+        (userParseData.name, userParseData.password, ws);
       switch (type) {
         case "reg":
-          const userParseData = JSON.parse(data);
-          const currentUser = createPlayer
-            (userParseData.name, userParseData.password, ws);
           console.log(currentUser)
           ws.send(sendJsonMessage(type, currentUser))
           break;
@@ -30,10 +30,13 @@ wss.on("connection", (ws: WebSocket, req) => {
           break;
         case "diconnect":
           break;
-        default:
-          console.log(type);
+        case "single_play":
+          console.log(type)
+          ws.send(sendJsonMessage(type, currentUser))
           break;
-      }
+        default:
+          break;
+        }
     } catch (error) {
       
     }
