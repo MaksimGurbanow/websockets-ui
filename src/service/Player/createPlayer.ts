@@ -1,7 +1,8 @@
-import { Users } from '../db/users';
+import { User } from 'src/models/interfaces';
+import { Users } from '../../db/users';
 import { WebSocket } from 'ws';
 
-export const createPlayer = (name: string, password: string, ws: WebSocket, bot?: boolean) => {
+export const createPlayer = (name: string, password: string, ws: WebSocket, bot: boolean): User => {
   if (Users.has(name)) {
     const user = Users.get(name)!;
     if (user.password === password) {

@@ -18,8 +18,14 @@ export interface Room {
 }
 
 export interface RoomUsers {
-  name: string;
-  index: number;
+  name?: string;
+  index?: number;
   turnIndex?: number;
   shipsLeft?: number;
+}
+
+
+export interface Winner {
+  name?: string;
+  wins?: number;
 }
