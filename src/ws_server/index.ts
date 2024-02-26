@@ -9,6 +9,7 @@ import { showWinners } from "../service/Game/showWinners";
 import { Users } from "../db/users";
 import { Commands } from "../models/commands";
 import { createRoom } from "../service/Room/createRoom";
+import { showAvailableRooms } from '../service/Room/showAvailableRooms';
 
 export const wss = new WebSocketServer({ port: 3000 });
 
@@ -25,11 +26,11 @@ wss.on("connection", (ws: WebSocket, req) => {
           currentUser = createPlayer(userParseData.name, userParseData.password, ws, false);
           ws.send(sendJsonMessage(reg, currentUser));
           ws.send(sendJsonMessage(update_winners, showWinners(Users)));
-          ws.send(sendJsonMessage(update_room, rooms));
+          ws.send(sendJsonMessage(update_room, showAvailableRooms(rooms)));
           break;
           case create_room:
             createRoom({...currentUser});
-            ws.send(sendJsonMessage(update_room, rooms));
+            ws.send(sendJsonMessage(update_room, showAvailableRooms(rooms)));
             break;
         case add_ships:
           break

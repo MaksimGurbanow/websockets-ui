@@ -6,5 +6,6 @@ export const rooms: Room[] = [{
   roomUsers: [{
     name: "Anton",
     index: 12
-  }]
+  }],
+  gameState: true
 }];
