@@ -10,6 +10,7 @@ export interface User {
   ws?: WebSocket;
   winner?: number;
   ready?: boolean;
+  ships?: Ship[];
   isBot?: boolean;
 }
 
@@ -24,6 +25,7 @@ export interface RoomUsers {
   index?: number;
   ws?: WebSocket;
   turnIndex?: number;
+  usersFields?: FieldUsers;
   shipsLeft?: number;
 }
 
