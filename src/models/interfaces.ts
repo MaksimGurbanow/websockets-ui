@@ -27,6 +27,41 @@ export interface RoomUsers {
   shipsLeft?: number;
 }
 
+export interface Ship {
+  position: {
+    x: number;
+    y: number;
+  };
+  direction: boolean;
+  length: number;
+  type: "small" | "medium" | "large" | "huge";
+}
+
+interface FieldUsers {
+  firstUserField: Field[][];
+  secondUserField: Field[][];
+}
+
+export interface FieldOccupied {
+  empty: false;
+  leftSide: number;
+  pastTheCells: number[];
+  shipTheCells: Array<[number, number]>;
+  overCells: Array<[number, number]>;
+  isAttacked?: boolean;
+}
+
+export interface FieldEmpty {
+  empty: true;
+  isAttacked: boolean;
+  overCells?: Array<[number, number]>;
+  leftSide?: number;
+  pastTheCells?: number[];
+  shipTheCells?: Array<[number, number]>;
+}
+
+export type Field = FieldOccupied | FieldEmpty;
+
 export interface Winner {
   name?: string;
   wins?: number;
