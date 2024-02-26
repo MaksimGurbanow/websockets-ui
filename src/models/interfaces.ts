@@ -12,7 +12,7 @@ export interface User {
 }
 
 export interface Room {
-  roomId: string;
+  roomId: number | string;
   roomUsers: RoomUsers[];
   gameState?: boolean;
 }

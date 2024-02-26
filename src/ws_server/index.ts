@@ -1,3 +1,4 @@
+import { addUserToRoom } from './../service/Room/addUserToRoom';
 import { parseSafelyData } from './../utils/parseSafelyData';
 import { User } from "src/models/interfaces";
 import { createPlayer } from "../service/Player/createPlayer";
@@ -37,6 +38,8 @@ wss.on("connection", (ws: WebSocket, req) => {
         case randomAttack:
           break;
         case add_user_to_room:
+          const { indexRoom } = userParseData;
+          addUserToRoom(currentUser, indexRoom);
           break;
         default:
           break;
