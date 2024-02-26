@@ -41,6 +41,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         case add_user_to_room:
           const { indexRoom } = userParseData;
           addUserToRoom(currentUser, indexRoom);
+          ws.send(sendJsonMessage(update_room, showAvailableRooms(rooms)));
           break;
         default:
           break;
