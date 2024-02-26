@@ -2,6 +2,7 @@ import { User } from "src/models/interfaces";
 import { createPlayer } from "../service/createPlayer";
 import { MessageEvent, WebSocket, WebSocketServer } from "ws";
 import { sendJsonMessage } from "../utils/sendJsonMessage";
+import { rooms } from "../db/rooms";
 
 export const wss = new WebSocketServer({ port: 3000 });
 
@@ -19,6 +20,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         case "reg":
           console.log(currentUser)
           ws.send(sendJsonMessage(type, currentUser))
+          ws.send(sendJsonMessage("update_room", rooms))
           break;
         case "create_game":
           break;
@@ -32,7 +34,6 @@ wss.on("connection", (ws: WebSocket, req) => {
           break;
         case "single_play":
           console.log(type)
-          ws.send(sendJsonMessage(type, currentUser))
           break;
         default:
           break;

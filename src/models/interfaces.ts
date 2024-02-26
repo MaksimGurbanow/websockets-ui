@@ -21,5 +21,5 @@ export interface RoomUsers {
   name: string;
   index: number;
   turnIndex?: number;
-  shipsLeft: number;
+  shipsLeft?: number;
 }
