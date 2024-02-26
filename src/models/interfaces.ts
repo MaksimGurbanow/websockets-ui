@@ -1,3 +1,5 @@
+import WebSocket from "ws";
+
 export interface User {
   name?: string;
   index?: number;
@@ -20,10 +22,10 @@ export interface Room {
 export interface RoomUsers {
   name?: string;
   index?: number;
+  ws?: WebSocket;
   turnIndex?: number;
   shipsLeft?: number;
 }
-
 
 export interface Winner {
   name?: string;

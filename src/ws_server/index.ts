@@ -12,6 +12,8 @@ import { createRoom } from "../service/Room/createRoom";
 import { showAvailableRooms } from '../service/Room/showAvailableRooms';
 
 export const wss = new WebSocketServer({ port: 3000 });
+const roomsReadyToStart: Set<string> = new Set();
+
 
 wss.on("connection", (ws: WebSocket, req) => {
   let currentUser: User;
@@ -30,7 +32,11 @@ wss.on("connection", (ws: WebSocket, req) => {
           break;
           case create_room:
             createRoom({...currentUser});
-            ws.send(sendJsonMessage(update_room, showAvailableRooms(rooms)));
+            wss.clients.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(sendJsonMessage(update_room, showAvailableRooms(rooms)));
+              }
+            })
             break;
         case add_ships:
           break
@@ -41,13 +47,23 @@ wss.on("connection", (ws: WebSocket, req) => {
         case add_user_to_room:
           const { indexRoom } = userParseData;
           addUserToRoom(currentUser, indexRoom);
-          ws.send(sendJsonMessage(update_room, showAvailableRooms(rooms)));
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(sendJsonMessage(update_room, showAvailableRooms(rooms)));
+            }
+          })
+          const room = rooms[indexRoom];
+          if (room && room.roomUsers.length === 2 && !roomsReadyToStart.has(indexRoom)) {
+            roomsReadyToStart.add(indexRoom);
+            room.roomUsers.forEach((user) => {
+              user.ws?.send(sendJsonMessage(create_game, {idGame: indexRoom, idPLayer: user.index}));
+            });
+          }
           break;
         default:
           break;
         }
     } catch (error) {
-      console.log('Error');
 
     }
   }
