@@ -1,15 +1,16 @@
+import { Ship } from './../../models/interfaces';
 import { User } from 'src/models/interfaces';
 import { Users } from '../../db/users';
 import { WebSocket } from 'ws';
 
-export const createPlayer = (name: string, password: string, ws: WebSocket, bot: boolean): User => {
+export const createPlayer = (name: string, password: string, ws: WebSocket, ships: Ship[] = [], isBot: boolean = false): User => {
   if (Users.has(name)) {
     const user = Users.get(name)!;
     if (user.password === password) {
       Users.set(name, { ...user, ws: ws });
-      return { name, index: user.index, error: false };
+      return { name, index: user.index, error: false, ships, isBot };
     } else {
-      return { error: true, errorText: "Error password" };
+      return { error: true, errorText: "Error password", ships, isBot };
     }
   } else {
     const index = Users.size + 1;
@@ -19,10 +20,10 @@ export const createPlayer = (name: string, password: string, ws: WebSocket, bot:
       index,
       error: false,
       errorText: "",
-      id: 0,
       ws,
-      isBot: bot
+      isBot,
+      ships
     });
-    return { name, index, error: false, errorText: "", ws: ws };
+    return { name, index, error: false, errorText: "", ws, ships, isBot };
   }
 };

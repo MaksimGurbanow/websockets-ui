@@ -6,27 +6,33 @@ export interface User {
   error?: boolean;
   errorText?: string;
   password?: string;
-  id?: 0;
   ws?: WebSocket;
   winner?: number;
   ready?: boolean;
   ships?: Ship[];
   isBot?: boolean;
+  usersFields?: FieldUsers;
+  turnIndex?: number;
+  shipsLeft?: number;
+}
+
+export interface Attack {
+  gameId: string;
+  x: number;
+  y: number;
+  indexPlayer: string | number;
 }
 
 export interface Room {
-  roomId: number | string;
+  roomId?: string;
   roomUsers: RoomUsers[];
-  gameState: boolean;
+  gameState?: boolean;
 }
 
 export interface RoomUsers {
   name?: string;
   index?: number;
   ws?: WebSocket;
-  turnIndex?: number;
-  usersFields?: FieldUsers;
-  shipsLeft?: number;
 }
 
 export interface Ship {
@@ -67,4 +73,9 @@ export type Field = FieldOccupied | FieldEmpty;
 export interface Winner {
   name?: string;
   wins?: number;
+}
+
+export interface Game {
+  players?: User[];
+  gameId?: string;
 }
