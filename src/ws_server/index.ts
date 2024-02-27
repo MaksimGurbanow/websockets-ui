@@ -60,11 +60,6 @@ wss.on("connection", (ws: WebSocket, req) => {
           break
         case attack:
           attackFunc(currentUser, userParseData)
-
-          game?.players?.forEach((player) => {
-            player.ws?.send(sendJsonMessage(attack, {position: {x: 1, y: 1},
-              currentPlayer: player.index, status: "missed"}))
-          })
           break;
         case randomAttack:
           break;
