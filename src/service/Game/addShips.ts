@@ -11,6 +11,7 @@ export const addShips = (game: Game | undefined, data: { ships: Ship[], indexPla
         player.ships = [];
       }
       player.ships.push(...data.ships);
+      player.shipsLeft = player.ships.length;
       player.ready = true;
       game.players?.forEach((player, index) => {
         const userPlayer = Users.get(player.name!);

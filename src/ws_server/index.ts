@@ -60,7 +60,6 @@ wss.on("connection", (ws: WebSocket, req) => {
           break
         case attack:
           attackFunc(currentUser, userParseData);
-          
           break;
         case randomAttack:
           break;
