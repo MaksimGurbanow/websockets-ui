@@ -48,18 +48,19 @@ wss.on("connection", (ws: WebSocket, req) => {
           addShips(game, userParseData);
 
           if (game && game.players && game.players.every((player) => player.ready)) {
-            const currentPlayerIndex = Math.round(Math.random());
+            const currentUserIndex = Math.round(Math.random());
         
             game.players.forEach((player) => {
                 if (player.ws) {
-                    player.ws.send(sendJsonMessage(start_game, { ships: player.ships, currentPlayerIndex: player.index }));
-                    player.ws.send(sendJsonMessage(turn, { currentPlayer: game?.players![currentPlayerIndex].index }));
+                    player.ws.send(sendJsonMessage(start_game, { ships: player.ships, currentUserIndex: player.index }));
+                    player.ws.send(sendJsonMessage(turn, { currentPlayer: game?.players![currentUserIndex].index }));
                 }
             });
           }
           break
         case attack:
-          attackFunc(currentUser, userParseData)
+          attackFunc(currentUser, userParseData);
+          
           break;
         case randomAttack:
           break;
@@ -77,6 +78,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         }
     } catch (error) {
       console.log(error)
+  
     }
   }
 });

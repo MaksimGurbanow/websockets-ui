@@ -1,8 +1,8 @@
-import { games, removeGame } from "src/db/games"
-import { Users } from "src/db/users";
-import { sendJsonMessage } from "src/utils/sendJsonMessage";
+import { games, removeGame } from "../../db/games"
+import { Users } from "../../db/users";
+import { sendJsonMessage } from "../../utils/sendJsonMessage";
 import { showWinners } from "./showWinners";
-import { rooms } from "src/db/rooms";
+import { rooms } from "../../db/rooms";
 
 export const announceWinner = (gameId: string, winnerIndex: number) => {
   const game = games.find((game) => game.gameId === gameId);

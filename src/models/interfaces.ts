@@ -11,9 +11,10 @@ export interface User {
   ready?: boolean;
   ships?: Ship[];
   isBot?: boolean;
-  usersFields?: FieldUsers;
   turnIndex?: number;
   shipsLeft?: number;
+  usersFields?: FieldUsers;
+
 }
 
 export interface Attack {
@@ -32,6 +33,7 @@ export interface Room {
 export interface RoomUsers {
   name?: string;
   index?: number;
+  usersFields?: FieldUsers;
   ws?: WebSocket;
 }
 
@@ -78,4 +80,5 @@ export interface Winner {
 export interface Game {
   players?: User[];
   gameId?: string;
+  usersFields?: FieldUsers;
 }

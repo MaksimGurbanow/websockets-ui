@@ -1,114 +1,83 @@
-import { sendJsonMessage } from './../../utils/sendJsonMessage';
 import { games } from "../../db/games";
 import { Attack, Field, User } from "../../models/interfaces";
-import { announceWinner } from './announceWinner';
-import { turnPlayer } from './turnPlayer';
-import { Users } from 'src/db/users';
-
+import { announceWinner } from "./announceWinner";
+import { turnPlayer } from "./turnPlayer";
+import { showAttack } from "./showAttack";
 
 export const attackFunc = (user: User, dataAttack: Attack) => {
   const { x, y, gameId, indexPlayer } = dataAttack;
 
   const game = games.find((game) => game.gameId === gameId);
-  if (!game) {
-    return
-  }
+  if (!game) return;
 
-  const currentPlayer = game.players?.find((player) => player.index === +indexPlayer);
-  if (!currentPlayer) {
-    return;
-  }
-
-  const opponentPlayer = game.players?.find((player) => player.index !== +indexPlayer);
-  if (!opponentPlayer) {
-    return;
-  }
+  const currentPlayer = game.players?.find(
+    (player) => player.index === +indexPlayer
+  );
+  const opponentPlayer = game.players?.find(
+    (player) => player.index !== +indexPlayer
+  );
+  if (!currentPlayer || !opponentPlayer) return;
 
   const opponentField =
     +indexPlayer === game.players![0].index
       ? opponentPlayer.usersFields?.secondUserField
       : opponentPlayer.usersFields?.firstUserField;
+  if (!opponentField) return;
 
-  if (!opponentField) {
-    return;
-  }
-  
-  const cell = opponentField[y][x];
+  const cell = opponentField[y]?.[x];
+  if (!cell) return;
 
   cell.isAttacked = true;
   const isHit = !cell.empty;
 
-  if(isHit) {
+  console.log(cell);
+  if (isHit) {
     cell.leftSide--;
     if (cell.leftSide === 0) {
-      if (opponentPlayer.shipsLeft) {
-        opponentPlayer.shipsLeft -= 1;
-        processDestroyedShip(cell, gameId, currentPlayer.index!);
-      }
+      processDestroyedShip(cell, gameId, currentPlayer.index!);
       if (opponentPlayer.shipsLeft === 0) {
-        if (currentPlayer.index) {
-          announceWinner(gameId, currentPlayer.index);
-          return;
-        }
+        announceWinner(gameId, currentPlayer.index!);
+        return;
       }
-
-      const nextPlayerIndex = game.players?.find((player) => player.index !== +indexPlayer)?.index;
-      if (nextPlayerIndex) {
-        turnPlayer(nextPlayerIndex, gameId);
-      }
-    } else {
-      game.players?.forEach((player) => {
-        const playerName = Users.get(player.name!);
-        if (player && player.ws) {
-          player.ws.send(sendJsonMessage("atack", {
-            position: {y, x},
-            currentPlayer: currentPlayer.index,
-            status: "shot"
-          }));
-        }
-      })
-
-      const nextPlayerIndex = game.players?.find((player) => player.index !== +indexPlayer)?.index;
-      if (nextPlayerIndex !== undefined) {
-        turnPlayer(nextPlayerIndex, gameId);
-      }
-    } 
-  } else {
-    game.players?.forEach((player) => {
-      const playerName = Users.get(player.name!);
-      if (player && player.ws) {
-        player.ws.send(sendJsonMessage("atack", {
-          position: {y, x},
-          currentPlayer: currentPlayer.index,
-          status: "missed"
-        }));
-      }
+    }
+    showAttack(gameId, "attack", {
+      position: { y, x },
+      currentPlayer: currentPlayer.index,
+      status: "shot",
     });
-    const nextPlayerIndex = game.players?.find((player) => player.index === +indexPlayer)?.index;
+  } else {
+    showAttack(gameId, "attack", {
+      position: { y, x },
+      currentPlayer: currentPlayer.index,
+      status: "missed",
+    });
+
+    const nextPlayerIndex = game.players?.find(
+      (player) => player.index !== +indexPlayer
+    )?.index;
     if (nextPlayerIndex !== undefined) {
       turnPlayer(nextPlayerIndex, gameId);
     }
   }
-}
+};
 
-const processDestroyedShip = (cell: Field, gameId: string, currentPlayerIndex: number) => {
-  cell.overCells?.forEach((aroundCell) => {
-    const [x, y] = aroundCell;
-    game.players?.forEach((player) => {
-      const playerName = Users.get(player.name!);
-      if (player && player.ws) {
-        player.ws.send(sendJsonMessage("atack", {
-          position: {y, x},
-          currentPlayer: currentPlayer.index,
-          status: "missed"
-        }));
-      }
+const processDestroyedShip = (
+  cell: Field,
+  gameId: string,
+  currentPlayerIndex: number
+) => {
+  
+  cell.overCells?.forEach(([x, y]) => {
+    showAttack(gameId, "attack", {
+      position: { x, y },
+      currentPlayer: currentPlayerIndex,
+      status: "missed",
     });
   });
 
-  cell.shipTheCells?.forEach((shipCell) => {
-    showPlayersAttack(gameId, "attack", {
-      position: { x: shipCell[0], y: shipCell[1] },
+  cell.shipTheCells?.forEach(([x, y]) => {
+    showAttack(gameId, "attack", {
+      position: { x, y },
       currentPlayer: currentPlayerIndex,
       status: "killed",
     });
