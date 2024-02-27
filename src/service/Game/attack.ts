@@ -4,8 +4,15 @@ import { announceWinner } from "./announceWinner";
 import { turnPlayer } from "./turnPlayer";
 import { showAttack } from "./showAttack";
 
-export const attackFunc = (user: User, dataAttack: Attack) => {
-  const { x, y, gameId, indexPlayer } = dataAttack;
+export const attackFunc = (user: number, dataAttack: Attack) => {
+  let { x, y, gameId, indexPlayer } = dataAttack;
+
+  if (!x && !y) {
+    do {
+      x = Math.floor(Math.random() * 10);
+      y = Math.floor(Math.random() * 10);
+    } while (cellAlreadyAttacked(gameId, x, y, indexPlayer));
+  }
 
   const game = games.find((game) => game.gameId === gameId);
   if (!game) return;
@@ -26,10 +33,10 @@ export const attackFunc = (user: User, dataAttack: Attack) => {
 
   const cell = opponentField[y]?.[x];
   if (!cell || (cell.isAttacked && !cell.leftSide)) return;
+
   cell.isAttacked = true;
   const isHit = !cell.empty;
 
-  console.log(opponentField)
   if (isHit) {
     cell.leftSide--;
     console.log(cell.leftSide)
@@ -51,6 +58,7 @@ export const attackFunc = (user: User, dataAttack: Attack) => {
       currentPlayer: currentPlayer.index,
       status: "shot",
     });
+    turnPlayer(user, gameId);
   } else {
     showAttack(gameId, "attack", {
       position: { y, x },
@@ -89,3 +97,20 @@ const processDestroyedShip = (
     });
   });
 };
+
+const cellAlreadyAttacked = (gameId: string, x: number, y: number, indexPlayer: number | string): boolean => {
+  const game = games.find((game) => game.gameId === gameId);
+  if (!game) return true;
+
+  const currentPlayer = game.players?.find((player) => player.index === indexPlayer);
+  const opponentPlayer = game.players?.find((player) => player.index !== indexPlayer);
+  if (!currentPlayer || !opponentPlayer) return true;
+
+  const opponentField =
+    indexPlayer === game.players![0].index
+      ? opponentPlayer.usersFields?.secondUserField
+      : opponentPlayer.usersFields?.firstUserField;
+  if (!opponentField) return true;
+  const cell = opponentField[y]?.[x];
+  return cell && cell.isAttacked!;
+}

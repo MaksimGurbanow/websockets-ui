@@ -2,7 +2,7 @@ import WebSocket from "ws";
 
 export interface User {
   name?: string;
-  index?: number;
+  index: number;
   error?: boolean;
   errorText?: string;
   password?: string;

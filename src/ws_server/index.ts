@@ -59,9 +59,10 @@ wss.on("connection", (ws: WebSocket, req) => {
           }
           break
         case attack:
-          attackFunc(currentUser, userParseData);
+          attackFunc(userParseData.currentPlayer, userParseData);
           break;
         case randomAttack:
+          attackFunc(userParseData.indexPlayer, userParseData);
           break;
           case "add_user_to_room":
             const { indexRoom } = userParseData;
