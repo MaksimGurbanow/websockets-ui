@@ -1,16 +1,17 @@
+import { sendJsonMessage } from 'src/utils/sendJsonMessage';
+import { Players } from '../../db/players';
 import { games } from "../../db/games";
-import { Users } from "../../db/users";
-import { sendJsonMessage } from "../../utils/sendJsonMessage";
 
-export const showAttack = (gameId: string, command: string, attackData: object) => {
-  const game = games.find((game) => game.gameId === gameId);
-
-  if (game) {
-    game.players?.forEach((player) => {
-      const playerName = Users.get(player.name!);
-      if (playerName && playerName.ws) {
-        playerName.ws.send(sendJsonMessage(command, attackData));
-      }
-    });
+export const showPlayersAttack = (gameId: string, type: string, data: object) => {
+  const game = games.find((g) => g.roomId === gameId);
+  if (!game) {
+    return;
   }
-}
+
+  game.roomUsers?.forEach((roomUser) => {
+    const player = Players.get(roomUser.name || "");
+    if (player && player.ws) {
+      player.ws.send(sendJsonMessage(type, data));
+    }
+  });
+};

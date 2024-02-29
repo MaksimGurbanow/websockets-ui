@@ -1,20 +1,19 @@
-import { Ship } from './../../models/interfaces';
-import { User } from 'src/models/interfaces';
-import { Users } from '../../db/users';
+import { Player } from 'src/models/interfaces';
+import { Players } from '../../db/players';
 import { WebSocket } from 'ws';
 
-export const createPlayer = (name: string, password: string, ws: WebSocket, ships: Ship[] = [], isBot: boolean = false): User => {
-  if (Users.has(name)) {
-    const user = Users.get(name)!;
+export const createPlayer = (name: string, password: string, ws: WebSocket, isBot: boolean = false): Player => {
+  if (Players.has(name)) {
+    const user = Players.get(name)!;
     if (user.password === password) {
-      Users.set(name, { ...user, ws: ws });
-      return { name, index: user.index, error: false, ships, isBot };
+      Players.set(name, { ...user, ws: ws });
+      return { name, index: user.index, error: false, isBot };
     } else {
-      return { error: true, errorText: "Error password", ships, isBot };
+      return { error: true, errorText: "Error password", isBot};
     }
   } else {
-    const index = Users.size + 1;
-    Users.set(name, {
+    const index = Players.size + 1;
+    Players.set(name, {
       name,
       password,
       index,
@@ -22,8 +21,8 @@ export const createPlayer = (name: string, password: string, ws: WebSocket, ship
       errorText: "",
       ws,
       isBot,
-      ships
+  
     });
-    return { name, index, error: false, errorText: "", ws, ships, isBot };
+    return { name, index, error: false, errorText: "", ws, isBot };
   }
 };

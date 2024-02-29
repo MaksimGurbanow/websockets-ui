@@ -1,5 +1,3 @@
-import { User } from "src/models/interfaces"
-
 export const sendJsonMessage = (type: string, data: object) => {
   return JSON.stringify({
     type,

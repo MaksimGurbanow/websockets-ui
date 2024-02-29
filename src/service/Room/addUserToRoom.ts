@@ -1,20 +1,41 @@
-import { Room, User } from 'src/models/interfaces';
-import { rooms } from '../../db/rooms';
-import { sendJsonMessage } from '../../utils/sendJsonMessage';
-import { games } from '../../db/games';
+import { rooms, removeRoom } from "src/db/rooms";
+import { createGame } from "../../service/Game/createGame"
+import { Players } from "../../db/players";
+import { showRoomsAnotherUsers } from "./showRoomsAnotherUsers";
 
-export const addUserToRoom = (currentUser: User, roomId: string) => {
-  const room = rooms.find((room) => room.roomId === roomId);
-  
-  if (room && room.roomUsers[0].name !== currentUser.name) {
-    room.roomUsers.push(currentUser);
-    room.gameState = true;
+export const addUserToRoom = (roomId: string, playerName: string) => {
+  const currentPlayer = Players.get(playerName);
+  const roomToAdd = rooms.find((room) => room.roomId === roomId);
 
-    games.push({gameId: roomId, players: room.roomUsers})
-    room?.roomUsers.forEach((user) => {
-      user.ws?.send(sendJsonMessage("create_game", {idGame: room.roomId, idPlayer: user.index}))
-    })
+  if (!currentPlayer || !roomToAdd || !roomToAdd.roomUsers) {
+    return;
   }
 
-  
-}
+
+  if (roomToAdd.roomUsers.some((user) => user.name === currentPlayer.name)) {
+    return;
+  }
+
+  rooms.forEach((room) => {
+    if (room.roomUsers?.some((user) => user.name === currentPlayer.name)) {
+      room.roomUsers = room.roomUsers.filter((user) => user.name !== currentPlayer.name);
+    }
+  });
+
+  const userData = {
+    name: currentPlayer.name,
+    index: currentPlayer.index,
+    shipsLeft: 10
+  };
+  roomToAdd.roomUsers.push(userData);
+
+  if (roomToAdd.roomUsers.length === 2) {
+    roomToAdd.gameState = true;
+    roomToAdd.roomUsers.forEach((user) => {
+      createGame(user.name || "", roomToAdd.roomId || "");
+    });
+    removeRoom(roomId);
+  }
+
+  showRoomsAnotherUsers();
+};

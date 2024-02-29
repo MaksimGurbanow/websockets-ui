@@ -1,9 +1,9 @@
 import { attackFunc } from './../service/Game/attack';
 import { games } from '../db/games';
-import { Users } from './../db/users';
+import { Players } from '../db/players';
 import { addUserToRoom } from './../service/Room/addUserToRoom';
 import { parseSafelyData } from './../utils/parseSafelyData';
-import { Game, User } from "src/models/interfaces";
+import { Game, Player } from "src/models/interfaces";
 import { createPlayer } from "../service/Player/createPlayer";
 import { MessageEvent, WebSocket, WebSocketServer } from "ws";
 import { sendJsonMessage } from "../utils/sendJsonMessage";
@@ -19,8 +19,8 @@ const roomsReadyToStart: Set<string> = new Set();
 
 
 wss.on("connection", (ws: WebSocket, req) => {
-  let currentUser: User;
-  let game: Game | undefined= {};
+  let currentUser: Player;
+  let currentGame: Game | undefined;
   const { reg, add_user_to_room, update_room, update_winners, attack, create_game, create_room, add_ships, start_game, finish, randomAttack, turn } = Commands
   ws.onmessage = (e: MessageEvent) => {
     try {
@@ -31,7 +31,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         case reg:
           currentUser = createPlayer(userParseData.name, userParseData.password, ws);
           ws.send(sendJsonMessage(reg, currentUser));
-          ws.send(sendJsonMessage(update_winners, showWinners(Users)));
+          ws.send(sendJsonMessage(update_winners, showWinners()));
           ws.send(sendJsonMessage(update_room, showAvailableRooms(rooms)));
           break;
           case create_room:
@@ -43,8 +43,8 @@ wss.on("connection", (ws: WebSocket, req) => {
             })
             break;
         case add_ships:
-          game = games.find((game) => 
-            game.gameId === userParseData.gameId);
+          currentGame = games.find((game) => 
+            game.roomId === userParseData.gameId);
           addShips(game, userParseData);
 
           if (game && game.players && game.players.every((player) => player.ready)) {

@@ -1,116 +1,155 @@
+import { sendJsonMessage } from 'src/utils/sendJsonMessage';
 import { games } from "../../db/games";
-import { Attack, Field, User } from "../../models/interfaces";
-import { announceWinner } from "./announceWinner";
+import { Attack, Field, Player } from "../../models/interfaces";
 import { turnPlayer } from "./turnPlayer";
-import { showAttack } from "./showAttack";
+import { showPlayersAttack } from "./showAttack";
+import { showWinners } from "./showWinners";
+import { rooms } from "../../db/rooms";
+import { Players } from "../../db/players";
+import { removeGame } from "../../db/games";
+import { randomAttack } from "./randomAttack";
 
-export const attackFunc = (user: number, dataAttack: Attack) => {
-  let { x, y, gameId, indexPlayer } = dataAttack;
+export const attack = (user: Player, dataAttack: Attack) => {
+  const { x, y, gameId, indexPlayer } = dataAttack;
 
-  if (!x && !y) {
-    do {
-      x = Math.floor(Math.random() * 10);
-      y = Math.floor(Math.random() * 10);
-    } while (cellAlreadyAttacked(gameId, x, y, indexPlayer));
+  const game = games.find((game) => game.roomId === gameId);
+  if (!game || !game.roomUsers) {
+    return;
   }
 
-  const game = games.find((game) => game.gameId === gameId);
-  if (!game) return;
+  const currentPlayer = game.roomUsers.find((roomUser) => roomUser.index === +indexPlayer);
+  if (!currentPlayer) {
+    return;
+  }
 
-  const currentPlayer = game.players?.find(
-    (player) => player.index === +indexPlayer
-  );
-  const opponentPlayer = game.players?.find(
-    (player) => player.index !== +indexPlayer
-  );
-  if (!currentPlayer || !opponentPlayer) return;
+  const opponentPlayer = game.roomUsers.find((roomUser) => roomUser.index !== +indexPlayer);
+  if (!opponentPlayer) {
+    return;
+  }
 
   const opponentField =
-    +indexPlayer === game.players![0].index
+    +indexPlayer === game.roomUsers[0].index
       ? opponentPlayer.usersFields?.secondUserField
       : opponentPlayer.usersFields?.firstUserField;
-  if (!opponentField) return;
 
-  const cell = opponentField[y]?.[x];
-  if (!cell || (cell.isAttacked && !cell.leftSide)) return;
+  if (!opponentField) {
+    return;
+  }
+
+  const cell = opponentField[y][x];
 
   cell.isAttacked = true;
   const isHit = !cell.empty;
 
   if (isHit) {
     cell.leftSide--;
-    console.log(cell.leftSide)
     if (cell.leftSide === 0) {
-      --opponentPlayer.shipsLeft!;
-      processDestroyedShip(cell, gameId, currentPlayer.index!);
-      cell.overCells.forEach((overCell) => {
-        const [x, y] = overCell;
-        const cell = opponentField[y]?.[x];
-        cell.isAttacked = true;
-      })
+      --opponentPlayer.shipsLeft;
+      if (!currentPlayer.index) {
+        return
+      }
+      processDestroyedShip(cell, gameId, currentPlayer.index);
+
       if (opponentPlayer.shipsLeft === 0) {
-        announceWinner(gameId, currentPlayer.index!);
+        announceWinner(gameId, currentPlayer.index);
         return;
       }
+
+      const nextPlayerIndex = game.roomUsers.find((ru) => ru.index !== +indexPlayer)?.index;
+      if (nextPlayerIndex !== undefined) {
+        turnPlayer(nextPlayerIndex, gameId);
+      }
+    } else {
+      showPlayersAttack(gameId, "attack", {
+        position: { y, x },
+        currentPlayer: currentPlayer.index,
+        status: "shot",
+      });
+      
+      if (user.isBot) {
+        randomAttack(user, gameId);
+        console.log('123')
+      }
+      const nextPlayerIndex = game.roomUsers.find((ru) => ru.index !== +indexPlayer)?.index;
+      if (nextPlayerIndex !== undefined) {
+        turnPlayer(nextPlayerIndex, gameId);
+      }
     }
-    showAttack(gameId, "attack", {
-      position: { y, x },
-      currentPlayer: currentPlayer.index,
-      status: "shot",
-    });
-    turnPlayer(user, gameId);
   } else {
-    showAttack(gameId, "attack", {
+    showPlayersAttack(gameId, "attack", {
       position: { y, x },
       currentPlayer: currentPlayer.index,
       status: "missed",
     });
-
-    const nextPlayerIndex = game.players?.find(
-      (player) => player.index !== +indexPlayer
-    )?.index;
+    const nextPlayerIndex = game.roomUsers.find((ru) => ru.index === +indexPlayer)?.index;
     if (nextPlayerIndex !== undefined) {
       turnPlayer(nextPlayerIndex, gameId);
     }
   }
 };
 
-const processDestroyedShip = (
-  cell: Field,
-  gameId: string,
-  currentPlayerIndex: number
-) => {
-
-  cell.overCells?.forEach(([x, y]) => {
-    showAttack(gameId, "attack", {
+const processDestroyedShip = (cell: Field, gameId: string, currentPlayerIndex: number) => {
+  cell.overCells?.forEach((aroundCell) => {
+    const [x, y] = aroundCell;
+    showPlayersAttack(gameId, "attack", {
       position: { x, y },
       currentPlayer: currentPlayerIndex,
       status: "missed",
     });
   });
 
-  cell.shipTheCells?.forEach(([x, y]) => {
-    showAttack(gameId, "attack", {
-      position: { x, y },
+  cell.shipTheCells?.forEach((shipCell) => {
+    showPlayersAttack(gameId, "attack", {
+      position: { x: shipCell[0], y: shipCell[1] },
       currentPlayer: currentPlayerIndex,
       status: "killed",
     });
   });
 };
 
-const cellAlreadyAttacked = (gameId: string, x: number, y: number, indexPlayer: number | string): boolean => {
-  const game = games.find((game) => game.gameId === gameId);
-  if (!game) return true;
+export const announceWinner = (gameId: string, winnerIndex: number) => {
+  const game = games.find((g) => g.roomId === gameId);
+  if (!game) {
+    console.error(`Game not found: ${gameId}`);
+    return;
+  }
 
-  const currentPlayer = game.players?.find((player) => player.index === indexPlayer);
-  const opponentPlayer = game.players?.find((player) => player.index !== indexPlayer);
-  if (!currentPlayer || !opponentPlayer) return true;
+  game.roomUsers?.forEach((roomUser) => {
+    const player = Players.get(roomUser.name || "");
+    if (player) {
+      if (player.index === winnerIndex) {
+        player.winner = (player.winner || 0) + 1;
+      }
 
-  const opponentField =
-    indexPlayer === game.players![0].index
-      ? opponentPlayer.usersFields?.secondUserField
-      : opponentPlayer.usersFields?.firstUserField;
-  if (!opponentField) return true;
-  const cell = opponentField[y]?.[x];
-  return cell && cell.isAttacked!;
-}
+      if (player.ws) {
+        player.ws.send(sendJsonMessage("finish", { winPlayer: winnerIndex }));
+      }
+    }
+  });
+
+  Players.forEach((player) => {
+    if (player.ws) {
+      player.ws.send(sendJsonMessage("update_winners", showWinners()));
+    }
+  });
+  removeGame(gameId);
+
+  games.forEach((game) => {
+    if (!game.roomUsers) {
+      return;
+    }
+    if (game.roomUsers.some((user) => user.index === winnerIndex)) {
+      console.log(winnerIndex);
+      game.roomUsers = game.roomUsers.filter((user) => user.index !== winnerIndex);
+    }
+  });
+  rooms.forEach((room) => {
+    if (!room.roomUsers) {
+      return;
+    }
+    if (room.roomUsers.some((user) => user.index === winnerIndex)) {
+      console.log(winnerIndex);
+      room.roomUsers = room.roomUsers.filter((user) => user.index !== winnerIndex);
+    }
+  });
+};

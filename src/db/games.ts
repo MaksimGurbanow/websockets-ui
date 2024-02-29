@@ -1,30 +1,30 @@
-import { Game } from "../models/interfaces";
+import { Game } from "src/models/interfaces";
 
 export let games: Game[] = [];
 
-export const removeGame = (gameId: string) => {
-  games = games.filter((game) => game.gameId !== gameId);
+export const removeGame = (roomId: string) => {
+  games = games.filter((game) => game.roomId !== roomId);
 };
 
-export const addTurnIndex = (indexPlayer: number, gameId: string): number | undefined => {
-  const game = games.find((game) => game.gameId === gameId);
+export const addTurnIndex = (indexPlayer: number, roomId: string): number | undefined => {
+  const game = games.find((game) => game.roomId === roomId);
   if (!game) {
-    console.log(`Game not found: ${gameId}`);
+    console.log(`Game not found: ${roomId}`);
     return -1;
   }
 
-  if (game.players) {
-    const currentPlayerIndex = game.players.findIndex((user) => user.index === indexPlayer);
+  if (game.roomUsers) {
+    const currentPlayerIndex = game.roomUsers.findIndex((user) => user.index === indexPlayer);
     let nextPlayerIndex = currentPlayerIndex + 1;
   
-    if (nextPlayerIndex >= game.players.length) {
+    if (nextPlayerIndex >= game.roomUsers.length) {
       nextPlayerIndex = 0;
     }
   
-    game.players.forEach((user) => {
-      user.turnIndex = game.players![nextPlayerIndex].index;
+    game.roomUsers.forEach((user) => {
+      user.turnIndex = game.roomUsers![nextPlayerIndex].index;
     });
   
-    return game.players[nextPlayerIndex].index;
+    return game.roomUsers[nextPlayerIndex].index;
   }
 };

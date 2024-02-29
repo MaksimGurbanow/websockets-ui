@@ -1,40 +1,17 @@
-import WebSocket from "ws";
+import { WebSocket } from "ws";
 
-export interface User {
+export interface Player {
   name?: string;
-  index: number;
+  index?: number;
   error?: boolean;
   errorText?: string;
   password?: string;
+  id?: 0;
   ws?: WebSocket;
   winner?: number;
   ready?: boolean;
-  ships?: Ship[];
   isBot?: boolean;
-  turnIndex?: number;
-  shipsLeft?: number;
-  usersFields?: FieldUsers;
-
-}
-
-export interface Attack {
-  gameId: string;
-  x: number;
-  y: number;
-  indexPlayer: string | number;
-}
-
-export interface Room {
-  roomId?: string;
-  roomUsers: RoomUsers[];
-  gameState?: boolean;
-}
-
-export interface RoomUsers {
-  name?: string;
-  index?: number;
-  usersFields?: FieldUsers;
-  ws?: WebSocket;
+  ships?: Ship[];
 }
 
 export interface Ship {
@@ -47,38 +24,57 @@ export interface Ship {
   type: "small" | "medium" | "large" | "huge";
 }
 
+export interface Room {
+  roomId?: string;
+  roomUsers?: RoomUsers[];
+  gameState?: boolean;
+}
+
+export interface RoomUsers {
+  name?: string;
+  index?: number;
+  turnIndex?: number;
+  usersFields?: FieldUsers;
+  shipsLeft: number;
+}
+
 interface FieldUsers {
   firstUserField: Field[][];
   secondUserField: Field[][];
 }
 
-export interface FieldOccupied {
-  empty: false;
-  leftSide: number;
-  pastTheCells: number[];
-  shipTheCells: Array<[number, number]>;
-  overCells: Array<[number, number]>;
-  isAttacked?: boolean;
+type GameWithoutGameState = Omit<Room, "gameState">;
+
+export interface Game extends GameWithoutGameState {
+  userReady?: number;
 }
 
-export interface FieldEmpty {
-  empty: true;
-  isAttacked: boolean;
-  overCells?: Array<[number, number]>;
-  leftSide?: number;
-  pastTheCells?: number[];
-  shipTheCells?: Array<[number, number]>;
+export interface Attack {
+  gameId: string;
+  x: number;
+  y: number;
+  indexPlayer: string | number;
 }
 
-export type Field = FieldOccupied | FieldEmpty;
+export type Field = 
+  | {
+      empty: false;
+      leftSide: number;
+      pastTheCells: number[];
+      shipTheCells: Array<[number, number]>;
+      overCells: Array<[number, number]>;
+      isAttacked?: boolean;
+    }
+  | {
+      empty: true;
+      isAttacked: boolean;
+      overCells?: Array<[number, number]>;
+      leftSide?: number;
+      pastTheCells?: number[];
+      shipTheCells?: Array<[number, number]>;
+    };
 
-export interface Winner {
-  name?: string;
-  wins?: number;
-}
-
-export interface Game {
-  players?: User[];
-  gameId?: string;
-  usersFields?: FieldUsers;
-}
+    export interface Winners {
+      name: string;
+      wins: number;
+    }
