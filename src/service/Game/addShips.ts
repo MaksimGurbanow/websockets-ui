@@ -1,4 +1,4 @@
-import { sendJsonMessage } from './../../utils/sendJsonMessage';
+import { sendJsonMessage } from '../../utils/sendJsonMessage';
 import { Players } from "../../db/players";
 import { Ship } from "../../models/interfaces";
 import { games } from "../../db/games";

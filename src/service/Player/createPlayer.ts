@@ -1,4 +1,4 @@
-import { Player } from 'src/models/interfaces';
+import { Player } from '../../models/interfaces';
 import { Players } from '../../db/players';
 import { WebSocket } from 'ws';
 

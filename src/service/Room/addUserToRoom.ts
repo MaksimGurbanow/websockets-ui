@@ -1,4 +1,4 @@
-import { rooms, removeRoom } from "src/db/rooms";
+import { rooms, removeRoom } from "../../db/rooms";
 import { createGame } from "../../service/Game/createGame"
 import { Players } from "../../db/players";
 import { showRoomsAnotherUsers } from "./showRoomsAnotherUsers";
